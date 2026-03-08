@@ -57,6 +57,51 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getSavings() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/savings'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      print('API Error (getSavings): $e');
+      return [];
+    }
+  }
+
+  Future<void> addSaving(Map<String, dynamic> data) async {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/savings'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+    } catch (e) {
+      print('API Error (addSaving): $e');
+    }
+  }
+
+  Future<void> updateSaving(String id, Map<String, dynamic> data) async {
+    try {
+      await http.put(
+        Uri.parse('$baseUrl/savings/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+    } catch (e) {
+      print('API Error (updateSaving): $e');
+    }
+  }
+
+  Future<void> deleteSaving(String id) async {
+    try {
+      await http.delete(Uri.parse('$baseUrl/savings/$id'));
+    } catch (e) {
+      print('API Error (deleteSaving): $e');
+    }
+  }
+
   Future<List<dynamic>> getBudgets() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/budgets'));

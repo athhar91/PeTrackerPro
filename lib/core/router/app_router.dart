@@ -8,6 +8,7 @@ import 'package:pe_track/features/health/presentation/health_dashboard_screen.da
 import 'package:pe_track/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:pe_track/features/admin/presentation/admin_panel_screen.dart';
 import 'package:pe_track/features/budget/presentation/budget_screen.dart';
+import 'package:pe_track/features/savings/presentation/savings_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -27,6 +28,10 @@ final appRouter = GoRouter(
       builder: (context, state) => const AddExpensesScreen(),
     ),
     GoRoute(path: '/budget', builder: (context, state) => const BudgetScreen()),
+    GoRoute(
+      path: '/savings',
+      builder: (context, state) => const SavingsScreen(),
+    ),
     GoRoute(
       path: '/workouts',
       builder: (context, state) => const WorkoutHistoryScreen(),

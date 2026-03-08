@@ -89,7 +89,7 @@ class DashboardScreen extends ConsumerWidget {
                 label: 'Savings',
                 icon: LucideIcons.piggyBank,
                 color: Colors.greenAccent,
-                onTap: () => context.push('/health'), // Placeholder
+                onTap: () => context.push('/savings'),
               ),
             ),
           ],

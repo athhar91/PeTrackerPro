@@ -40,7 +40,7 @@ final categoryStatsProvider = AutoDisposeProvider<List<CategoryStat>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CategoryStatsRef = AutoDisposeProviderRef<List<CategoryStat>>;
-String _$expensesHash() => r'86c5def59847f2eea62e0a19b355023d6489cfbc';
+String _$expensesHash() => r'91d6fe068938cb1754d63829d90bbd0c640a731b';
 
 /// See also [Expenses].
 @ProviderFor(Expenses)
