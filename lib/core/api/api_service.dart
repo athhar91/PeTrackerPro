@@ -37,6 +37,26 @@ class ApiService {
     }
   }
 
+  Future<void> updateExpense(String id, Map<String, dynamic> data) async {
+    try {
+      await http.put(
+        Uri.parse('$baseUrl/expenses/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+    } catch (e) {
+      print('API Error (updateExpense): $e');
+    }
+  }
+
+  Future<void> deleteExpense(String id) async {
+    try {
+      await http.delete(Uri.parse('$baseUrl/expenses/$id'));
+    } catch (e) {
+      print('API Error (deleteExpense): $e');
+    }
+  }
+
   Future<List<dynamic>> getBudgets() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/budgets'));

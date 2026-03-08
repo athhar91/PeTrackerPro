@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pe_track/features/add_expenses/presentation/expenses_provider.dart';
+import 'package:pe_track/features/add_expenses/domain/expense.dart';
 
 class AddExpensesScreen extends ConsumerStatefulWidget {
   const AddExpensesScreen({super.key});
@@ -18,6 +19,7 @@ class _AddExpensesScreenState extends ConsumerState<AddExpensesScreen> {
   String _selectedCategory = 'Food';
   String _selectedPaymentMethod = 'Cash';
   DateTime _selectedDate = DateTime.now();
+  String? _editingExpenseId;
 
   final List<String> _categories = [
     'Food',
@@ -36,7 +38,7 @@ class _AddExpensesScreenState extends ConsumerState<AddExpensesScreen> {
       return;
     }
 
-    final newExpense = {
+    final expenseData = {
       'title':
           _descriptionController.text.isEmpty
               ? _selectedCategory
@@ -47,16 +49,89 @@ class _AddExpensesScreenState extends ConsumerState<AddExpensesScreen> {
       'paymentMethod': _selectedPaymentMethod,
     };
 
-    await ref.read(expensesProvider.notifier).addExpense(newExpense);
+    if (_editingExpenseId != null) {
+      await ref
+          .read(expensesProvider.notifier)
+          .editExpense(_editingExpenseId!, expenseData);
+    } else {
+      await ref.read(expensesProvider.notifier).addExpense(expenseData);
+    }
 
     _amountController.clear();
     _descriptionController.clear();
+    setState(() {
+      _editingExpenseId = null;
+      _selectedCategory = 'Food';
+      _selectedPaymentMethod = 'Cash';
+      _selectedDate = DateTime.now();
+    });
 
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Expense Saved ✨')));
-      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _editingExpenseId != null ? 'Expense Updated ✨' : 'Expense Saved ✨',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _editExpense(Expense expense) {
+    setState(() {
+      _editingExpenseId = expense.id;
+      _amountController.text = expense.amountValue;
+      _descriptionController.text = expense.titleValue;
+      _selectedCategory = expense.categoryValue;
+      _selectedPaymentMethod = expense.paymentMethodValue;
+      try {
+        _selectedDate = DateFormat('yyyy-MM-dd').parse(expense.dateValue);
+      } catch (_) {
+        _selectedDate = DateTime.now();
+      }
+    });
+  }
+
+  Future<void> _deleteExpense(Expense expense) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1A1A1A),
+            title: const Text(
+              'Delete Expense',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'Are you sure you want to remove this expense?',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.white38),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true && expense.id != null) {
+      await ref.read(expensesProvider.notifier).deleteExpense(expense.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Expense Deleted 🗑️')));
+      }
     }
   }
 
@@ -387,9 +462,11 @@ class _AddExpensesScreenState extends ConsumerState<AddExpensesScreen> {
           child:
               isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                    'SAVE EXPENSE',
-                    style: TextStyle(
+                  : Text(
+                    _editingExpenseId != null
+                        ? 'UPDATE EXPENSE'
+                        : 'SAVE EXPENSE',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -486,7 +563,7 @@ class _AddExpensesScreenState extends ConsumerState<AddExpensesScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              _getIconForCategory(expense.category),
+              _getIconForCategory(expense.categoryValue),
               color: Colors.orangeAccent,
               size: 20,
             ),
@@ -520,6 +597,26 @@ class _AddExpensesScreenState extends ConsumerState<AddExpensesScreen> {
                   color: Colors.redAccent,
                   fontSize: 16,
                 ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => _editExpense(expense),
+                    icon: const Icon(LucideIcons.pencil, size: 14),
+                    color: Colors.white60,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: () => _deleteExpense(expense),
+                    icon: const Icon(LucideIcons.trash2, size: 14),
+                    color: Colors.redAccent.withValues(alpha: 0.6),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
               Text(
                 expense.dateValue,

@@ -16,12 +16,35 @@ class Expenses extends _$Expenses {
 
   Future<void> addExpense(Map<String, dynamic> data) async {
     state = const AsyncValue.loading();
-
     state = await AsyncValue.guard(() async {
       final apiService = ref.read(apiServiceProvider);
-      await apiService.addExpense(data);
+      // Ensure there's an ID if not provided
+      final expenseData = {
+        ...data,
+        if (data['id'] == null)
+          'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      };
+      await apiService.addExpense(expenseData);
+      final newData = await apiService.getExpenses();
+      return newData.map((e) => Expense.fromJson(e)).toList();
+    });
+  }
 
-      // Refresh the list after adding
+  Future<void> editExpense(String id, Map<String, dynamic> data) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final apiService = ref.read(apiServiceProvider);
+      await apiService.updateExpense(id, data);
+      final newData = await apiService.getExpenses();
+      return newData.map((e) => Expense.fromJson(e)).toList();
+    });
+  }
+
+  Future<void> deleteExpense(String id) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final apiService = ref.read(apiServiceProvider);
+      await apiService.deleteExpense(id);
       final newData = await apiService.getExpenses();
       return newData.map((e) => Expense.fromJson(e)).toList();
     });
